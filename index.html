@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mobile Quote</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; max-width: 520px; }
+      .btn { display:block; padding:16px; margin:12px 0; border:1px solid #ddd; border-radius:14px;
+             text-decoration:none; font-weight:600; }
+      .muted { color:#555; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h2>Mobile Savings Quote</h2>
+    <p class="muted">Text only. I’ll reply when I’m free.</p>
+
+    <a id="textBtn" class="btn" href="#">Text Ryan (Mobile Quote)</a>
+
+    <a class="btn" href="https://www.xfinity.com/support/" rel="noopener">
+      Billing / Support
+    </a>
+
+    <script>
+      const number = "+12159787360"; // <-- YOUR WORK PHONE
+      const msg =
+        "MOBILE QUOTE — Carrier: ____  Lines: ____  Current bill est: $____";
+      const encoded = encodeURIComponent(msg);
+
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
+      const link = isAndroid
+        ? `smsto:${number}?body=${encoded}`
+        : `sms:${number}?&body=${encoded}`;
+
+      document.getElementById("textBtn").setAttribute("href", link);
+    </script>
+  </body>
+</html>
