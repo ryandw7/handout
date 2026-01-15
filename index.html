@@ -3,37 +3,142 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mobile Quote</title>
+    <title>Service Inquiry</title>
     <style>
       body { font-family: system-ui, sans-serif; margin: 24px; max-width: 520px; }
-      .btn { display:block; padding:16px; margin:12px 0; border:1px solid #ddd; border-radius:14px;
-             text-decoration:none; font-weight:600; }
-      .muted { color:#555; font-size: 14px; }
+      .btn {
+        display:block; padding:16px; margin:12px 0;
+        border:1px solid #ddd; border-radius:14px;
+        text-decoration:none; font-weight:700;
+        cursor: pointer;
+      }
+      .muted { color:#555; font-size: 14px; margin-top: 4px; }
+      .card {
+        border: 1px solid #eee; border-radius: 14px; padding: 16px;
+        margin: 12px 0;
+      }
+      label { display: block; margin: 10px 0; font-weight: 600; }
+      input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+      .row { display: flex; gap: 14px; align-items: center; margin: 10px 0; }
+      .row label { margin: 0; font-weight: 600; display:flex; gap:10px; align-items:center; }
+      .preview {
+        background: #fafafa; border: 1px solid #eee; border-radius: 12px;
+        padding: 12px; font-size: 14px; color: #333;
+        white-space: pre-wrap;
+      }
+      .error {
+        color: #b00020; font-size: 13px; margin-top: 10px; display:none;
+      }
+      .btn.secondary { font-weight: 700; }
     </style>
   </head>
+
   <body>
-    <h2>Mobile Savings Quote</h2>
+    <h2>Service Inquiry</h2>
     <p class="muted">Text only. I’ll reply when I’m free.</p>
 
-    <a id="textBtn" class="btn" href="#">Text Ryan (Mobile Quote)</a>
+    <div class="card">
+      <label for="custName">Your name</label>
+      <input id="custName" type="text" placeholder="John Doe" autocomplete="name" />
 
-    <a class="btn" href="https://www.xfinity.com/support/" rel="noopener">
+      <label style="margin-top:14px;">What services are you inquiring about?</label>
+      <div class="row">
+        <label><input id="svcInternet" type="checkbox" /> New Internet</label>
+        <label><input id="svcMobile" type="checkbox" /> New Mobile</label>
+      </div>
+
+      <div class="muted" style="margin-top:14px; font-weight:700;">Message preview</div>
+      <div id="preview" class="preview">Fill out the form above…</div>
+
+      <div id="err" class="error">Please enter your name and select at least one service.</div>
+    </div>
+
+    <a id="textBtn" class="btn" href="#">Text Ryan</a>
+
+    <a class="btn secondary" href="https://www.xfinity.com/support/" rel="noopener">
       Billing / Support
     </a>
 
     <script>
-      const number = "+12159787360"; // <-- YOUR WORK PHONE
-      const msg =
-        "MOBILE QUOTE — Carrier: ____  Lines: ____  Current bill est: $____";
-      const encoded = encodeURIComponent(msg);
+      const number = "+12159787360"; // your work phone
+
+      const nameEl = document.getElementById("custName");
+      const internetEl = document.getElementById("svcInternet");
+      const mobileEl = document.getElementById("svcMobile");
+      const previewEl = document.getElementById("preview");
+      const textBtn = document.getElementById("textBtn");
+      const errEl = document.getElementById("err");
 
       const isAndroid = /Android/i.test(navigator.userAgent);
 
-      const link = isAndroid
-        ? `smsto:${number}?body=${encoded}`
-        : `sms:${number}?&body=${encoded}`;
+      function buildServicesText() {
+        const services = [];
+        if (internetEl.checked) services.push("Internet");
+        if (mobileEl.checked) services.push("Mobile");
 
-      document.getElementById("textBtn").setAttribute("href", link);
+        if (services.length === 0) return "";
+
+        if (services.length === 1) return services[0];
+        if (services.length === 2) return "Internet and Mobile";
+
+        // (future proof)
+        return services.slice(0, -1).join(", ") + " and " + services.at(-1);
+      }
+
+      function buildMessage() {
+        const name = (nameEl.value || "").trim();
+        const servicesText = buildServicesText();
+
+        if (!name || !servicesText) return "";
+
+        // exact phrasing you asked for
+        return `Hi Ryan, this is ${name}. I would like to inquire about new ${servicesText} services.`;
+      }
+
+      function update() {
+        const msg = buildMessage();
+
+        if (!msg) {
+          previewEl.textContent = "Fill out the form above…";
+          textBtn.setAttribute("href", "#");
+          errEl.style.display = "none";
+          return;
+        }
+
+        previewEl.textContent = msg;
+
+        const encoded = encodeURIComponent(msg);
+        const link = isAndroid
+          ? `smsto:${number}?body=${encoded}`
+          : `sms:${number}?&body=${encoded}`;
+
+        textBtn.setAttribute("href", link);
+        errEl.style.display = "none";
+      }
+
+      // block clicking text button unless valid
+      textBtn.addEventListener("click", (e) => {
+        const msg = buildMessage();
+        if (!msg) {
+          e.preventDefault();
+          errEl.style.display = "block";
+        }
+      });
+
+      // live updates
+      nameEl.addEventListener("input", update);
+      internetEl.addEventListener("change", update);
+      mobileEl.addEventListener("change", update);
+
+      // init
+      update();
     </script>
   </body>
 </html>
